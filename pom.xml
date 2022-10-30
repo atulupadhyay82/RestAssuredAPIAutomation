@@ -27,6 +27,7 @@
             <artifactId>testng</artifactId>
             <version>7.6.1</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
