@@ -7,11 +7,15 @@ import io.restassured.specification.RequestSpecification;
 import org.testng.annotations.Test;
 
 /**
+ * https://toolsqa.com/rest-assured/put-request-using-rest-assured/
+ *
  * While going through the previous tutorials you must have noticed that we have used the username and the password
  * (authentication credentials) for certain APIs. This credential setting is to enforce access control for the web resources
  * and is generally passed in the header field of an HTTP request. The implementation of basic authentication is to ensure
  * that the APIs are secured and only the users who are authorized have the access to view them. Hence, the authentication
- * information is not encrypted or hashed but encoded as base-64
+ * information is not encrypted or hashed but encoded as base-64.
+ *
+ * Rest assured has four types of authentication schemes. They are basic, digest, form, and OAuth authentication.
  */
 public class TestBasicAuth {
 
@@ -95,5 +99,7 @@ public class TestBasicAuth {
    * below syntax-
    *
    * <p>given().auth().oauth2("Access token").get("your end point URL")
+   *
+   * Using the access token you can easily request any of the resources secured using the OAuth scheme.
    */
 }
