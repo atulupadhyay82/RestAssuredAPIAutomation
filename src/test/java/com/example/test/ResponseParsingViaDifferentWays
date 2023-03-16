@@ -1,0 +1,107 @@
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
+
+/**
+ * we are setting the base URL of the API using RestAssured.baseURI. 
+ * We are then setting the custom headers using the header() method and sending the GET request to the desired endpoint using the given() method.
+
+ * We are then validating the response status code using the statusCode() method.
+ * Next, we are mapping the JSON response to a POJO class named ExampleResponse using the as() method. The ExampleResponse class is a simple POJO class with a single field named "key" with getter and setter methods.
+ * We are then validating the response body key-value pair using the getKey() method of the ExampleResponse object and comparing it with the expected value using the assertThat() method from JUnit.
+*/
+public class ExampleAPIRequest {
+    public static void main(String[] args) {
+        // Setting the base URL of the API
+        RestAssured.baseURI = "https://example.com";
+
+        // Setting the custom headers
+        String authHeader = "Bearer your_access_token_here";
+        String contentTypeHeader = "application/json";
+
+        // Sending the GET request with the custom headers
+        Response response = given()
+                .header("Authorization", authHeader)
+                .header("Content-Type", contentTypeHeader)
+                .when()
+                .get("/api/endpoint")
+                .as(ExampleResponse.class);
+
+        // Validating the response status code
+        response.then().statusCode(200);
+
+        // Validating the response body key-value pair using POJO class
+        ExampleResponse responseBody = response.getBody().as(ExampleResponse.class);
+        String expectedValue = "value";
+        String actualValue = responseBody.getKey();
+        assertThat(actualValue, equalTo(expectedValue));
+    }
+    
+}
+/** Response Parsing Using JSONPath
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
+import static io.restassured.path.json.JsonPath.*;
+*/
+class ExampleAPIRequest {
+    public static void main(String[] args) {
+        // Setting the base URL of the API
+        RestAssured.baseURI = "https://example.com";
+
+        // Setting the custom headers
+        String authHeader = "Bearer your_access_token_here";
+        String contentTypeHeader = "application/json";
+
+        // Sending the GET request with the custom headers
+        Response response = given()
+                .header("Authorization", authHeader)
+                .header("Content-Type", contentTypeHeader)
+                .when()
+                .get("/api/endpoint");
+
+        // Validating the response status code
+        response.then().statusCode(200);
+
+        // Extracting the response body and validating the key-value pair using JSONPath
+        String responseBody = response.getBody().asString();
+        String expectedValue = "value";
+        String actualValue = from(responseBody).get("key");
+        assertThat(actualValue, equalTo(expectedValue));
+    }
+}
+
+/**
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+*/
+class ExampleAPIRequest {
+    public static void main(String[] args) {
+        // Setting the base URL of the API
+        RestAssured.baseURI = "https://example.com";
+
+        // Setting the custom headers
+        String authHeader = "Bearer your_access_token_here";
+        String contentTypeHeader = "application/json";
+
+        // Setting the request body in key-value pairs
+        String requestBody = "{\"key\":\"value\"}";
+
+        // Sending the POST request with the custom headers and request body
+        Response response = given()
+                .header("Authorization", authHeader)
+                .header("Content-Type", contentTypeHeader)
+                .body(requestBody)
+                .when()
+                .post("/api/endpoint");
+
+        // Validating the response status code
+        response.then().statusCode(200);
+
+        // Validating the response body key-value pair
+        response.then().assertThat().body("key", equalTo("value"));
+    }
+}
+
