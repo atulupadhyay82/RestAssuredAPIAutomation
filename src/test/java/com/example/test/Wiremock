@@ -1,0 +1,115 @@
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+/** In this example, we start a WireMock server on port 8080 and 
+  set up a mock response for a GET request to the /mock-service endpoint. 
+  The mock response has a status code of 200 and a body of "Mocked response body". 
+  We then use RestAssured to make a request to the mock endpoint and verify that the response matches the expected body.
+
+  Note that you'll need to add the appropriate dependencies to your project to use
+  WireMock and RestAssured, and also import the relevant classes in your code.
+
+*/
+public class MyWireMockServer {
+
+    private static final int PORT = 8080;
+    private static final String RESPONSE_BODY = "Mocked response body";
+
+    public static void main(String[] args) {
+        // Start WireMock server
+        WireMockServer wireMockServer = new WireMockServer(options().port(PORT));
+        wireMockServer.start();
+
+        // Set up a mock response for a GET request
+        stubFor(get(urlEqualTo("/mock-service"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody(RESPONSE_BODY)));
+
+        // Make a request to the mock endpoint and verify the response
+        String baseUrl = "http://localhost:" + PORT;
+        String mockEndpoint = "/mock-service";
+        String response = RestAssured.get(baseUrl + mockEndpoint).asString();
+        System.out.println("Response from mock endpoint: " + response);
+        assertThat(response, equalTo(RESPONSE_BODY));
+
+        // Stop the WireMock server
+        wireMockServer.stop();
+    }
+}
+
+/**
+* In this example, we are creating a WireMockServer instance and starting it in the setup() method. 
+  We are then configuring a mock response for the downstream service by using the stubFor() method 
+  and specifying the URL endpoint that we want to mock, the HTTP method to mock (in this case POST), 
+  the custom request header and body that we want to match, and the response body and headers that we want to return.
+
+  After configuring the mock response, we can then perform a request to the mock endpoint using RestAssured. 
+  We are passing a custom request header and body using the header() and body() methods, respectively.
+  We are also specifying the content type of the request body using the contentType() method.
+ 
+  We are then verifying the response using RestAssured's assertion methods. We are checking the status code, 
+  content type, and the values of the response body fields.
+  
+  Finally, we are verifying that the request was received by WireMock by using the verify() method 
+  and specifying the URL endpoint, custom request header, and body that we expect to match. 
+  This ensures that our mock response was triggered by the request that we made using RestAssured.
+ */
+import com.github.tomakehurst.wiremock.WireMockServer;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+
+public class MockDownstreamService {
+
+    private WireMockServer wireMockServer;
+
+    @Before
+    public void setup() {
+        // Create a new WireMockServer instance
+        wireMockServer = new WireMockServer();
+
+        // Start the WireMockServer
+        wireMockServer.start();
+    }
+
+    @After
+    public void teardown() {
+        // Stop the WireMockServer
+        wireMockServer.stop();
+    }
+
+    @Test
+    public void testMockResponse() {
+
+        // Configure the mock response for the downstream service
+        stubFor(post(urlEqualTo("/api/data"))
+                .withHeader("Custom-Header", equalTo("Custom-Value"))
+                .withRequestBody(equalTo("{\"id\":123,\"name\":\"John Doe\"}"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"id\": 123, \"name\": \"John Doe\"}")));
+
+        // Perform a request to the mock endpoint using RestAssured
+        RestAssured.given()
+                .header("Custom-Header", "Custom-Value")
+                .contentType(ContentType.JSON)
+                .body("{\"id\":123,\"name\":\"John Doe\"}")
+                .post("http://localhost:8080/api/data")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("id", equalTo(123))
+                .body("name", equalTo("John Doe"));
+
+        // Verify that the request was received by WireMock
+        verify(postRequestedFor(urlEqualTo("/api/data"))
+                .withHeader("Custom-Header", equalTo("Custom-Value"))
+                .withRequestBody(equalTo("{\"id\":123,\"name\":\"John Doe\"}")));
+    }
+}
